@@ -138,6 +138,25 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Add after existing CHANNEL_LAYERS
+REDIS_AVAILABLE = False
+try:
+    import redis as _redis
+    _r = _redis.Redis(
+        host=os.environ.get('REDIS_HOST', 'localhost'),
+        port=int(os.environ.get('REDIS_PORT', 6379)),
+        socket_connect_timeout=2
+    )
+    _r.ping()
+    REDIS_AVAILABLE = True
+except Exception:
+    pass
+
+if not REDIS_AVAILABLE and DEBUG:
+    CHANNEL_LAYERS = {
+        'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+    }
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
