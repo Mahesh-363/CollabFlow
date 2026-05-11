@@ -40,17 +40,18 @@ CHANNEL_LAYERS = {
 }
 
 # CORS
+from corsheaders.defaults import default_headers
+
 CORS_ALLOWED_ORIGINS = [
-    origin.strip() 
-    for origin in os.environ.get(
-        'CORS_ALLOWED_ORIGINS', 
-        'https://collabflow-lovat.vercel.app'
-    ).split(',')
-    if origin.strip()
+    'https://collabflow-lovat.vercel.app',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'contenttype',
+]
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # Static files
 STATIC_ROOT = BASE_DIR / 'staticfiles'
