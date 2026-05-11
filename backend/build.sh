@@ -2,11 +2,15 @@
 # exit on error
 set -o errexit
 
-# Install dependencies 
-# (We are already in the backend folder where requirements.txt lives)
+echo "Current Directory: $(pwd)"
+
+# Navigate to where requirements.txt actually is
+cd backend
+
+echo "Installing requirements..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Database and Static Files
+echo "Running Django commands..."
 python manage.py collectstatic --no-input
 python manage.py migrate
