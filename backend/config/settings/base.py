@@ -3,7 +3,8 @@ import dj_database_url
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
-
+import sys
+print(">>> DATABASE_URL =", os.environ.get('DATABASE_URL', 'NOT SET'), file=sys.stderr)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
