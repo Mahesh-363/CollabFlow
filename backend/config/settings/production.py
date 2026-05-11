@@ -44,8 +44,17 @@ CACHES = {
 }
 
 # CORS
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() 
+    for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS', 
+        'https://collabflow-lovat.vercel.app'
+    ).split(',')
+    if origin.strip()
+]
+
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 # Static files
 STATIC_ROOT = BASE_DIR / 'staticfiles'
