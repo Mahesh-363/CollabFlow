@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -o errexit
 
-cd backend
-
 echo "DATABASE_URL is: $DATABASE_URL"
 
 pip install --upgrade pip
