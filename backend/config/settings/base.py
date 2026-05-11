@@ -5,7 +5,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-load_dotenv(BASE_DIR.parent / '.env')
+
 
 # Security & Environment
 SECRET_KEY = os.environ.get('SECRET_KEY', 'collabflow-dev-secret-key-change-in-production')
@@ -116,11 +116,10 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [(os.environ.get('REDIS_HOST', 'localhost'), int(os.environ.get('REDIS_PORT', 6379)))],
+            'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
         },
     },
 }
-
 # Rest Framework & JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',),
