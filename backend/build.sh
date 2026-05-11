@@ -2,9 +2,6 @@
 # exit on error
 set -o errexit
 
-# We are already in the root, so we move into backend
-cd backend
-
 pip install --upgrade pip
 pip install -r requirements.txt
 
