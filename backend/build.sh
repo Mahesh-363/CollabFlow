@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# exit on error
 set -o errexit
+
+cd backend
+
+echo "DATABASE_URL is: $DATABASE_URL"
 
 pip install --upgrade pip
 pip install -r requirements.txt
