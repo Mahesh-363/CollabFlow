@@ -18,7 +18,7 @@ class WorkspaceListCreateView(StandardResponseMixin, generics.GenericAPIView):
             user=request.user
         ).values_list('workspace_id', flat=True)
         workspaces = Workspace.objects.filter(id__in=member_ids)
-        data = [_workspace_data(w) for w in workspaces]
+        data = [_workspace_data(w, request.user) for w in workspaces]
         return self.success(data=data)
 
     def post(self, request):
@@ -38,7 +38,7 @@ class WorkspaceListCreateView(StandardResponseMixin, generics.GenericAPIView):
             workspace=workspace,
             role='owner'
         )
-        return self.success(data=_workspace_data(workspace), status_code=status.HTTP_201_CREATED)
+        return self.success(data=_workspace_data(workspace, request.user), status_code=status.HTTP_201_CREATED)
 
 
 class WorkspaceDetailView(StandardResponseMixin, generics.GenericAPIView):
@@ -46,11 +46,10 @@ class WorkspaceDetailView(StandardResponseMixin, generics.GenericAPIView):
 
     def get(self, request, slug):
         workspace = get_object_or_404(Workspace, slug=slug)
-        return self.success(data=_workspace_data(workspace))
+        return self.success(data=_workspace_data(workspace, request.user))
 
     def patch(self, request, slug):
         workspace = get_object_or_404(Workspace, slug=slug)
-        # Only owner/admin can update
         member = WorkspaceMember.objects.filter(
             user=request.user, workspace=workspace
         ).first()
@@ -60,7 +59,7 @@ class WorkspaceDetailView(StandardResponseMixin, generics.GenericAPIView):
             if field in request.data:
                 setattr(workspace, field, request.data[field])
         workspace.save()
-        return self.success(data=_workspace_data(workspace))
+        return self.success(data=_workspace_data(workspace, request.user))
 
 
 class WorkspaceMembersView(StandardResponseMixin, generics.GenericAPIView):
@@ -100,7 +99,12 @@ def leave_workspace(request, slug):
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
-def _workspace_data(w):
+def _workspace_data(w, user=None):
+    member_count = WorkspaceMember.objects.filter(workspace=w).count()
+    role = None
+    if user:
+        m = WorkspaceMember.objects.filter(workspace=w, user=user).first()
+        role = m.role if m else None
     return {
         "id": str(w.id),
         "name": w.name,
@@ -108,6 +112,8 @@ def _workspace_data(w):
         "description": w.description,
         "icon_color": getattr(w, 'icon_color', '#4a154b'),
         "owner_id": str(w.owner_id),
+        "member_count": member_count,
+        "current_user_role": role,
         "created_at": w.created_at.isoformat() if hasattr(w, 'created_at') else None,
     }
 
