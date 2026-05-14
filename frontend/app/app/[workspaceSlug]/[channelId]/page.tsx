@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { channelApi, messageApi, workspaceApi } from '@/lib/api'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
-import { useChatSocket } from '@/hooks/useWebSocket'
+import { useChatSocket, usePresenceSocket } from '@/hooks/useWebSocket'
 import { Sidebar } from '@/components/Sidebar'
 import { MessageItem } from '@/components/MessageItem'
 import { MessageInput } from '@/components/MessageInput'
@@ -66,6 +66,7 @@ export default function ChannelPage() {
   enabled ? workspaceSlug : null,
   enabled ? channelId : null
 )
+  usePresenceSocket()
   const handleSend = useCallback((content: string) => { sendMessage(content) }, [sendMessage])
 
   const { data: members } = useQuery({

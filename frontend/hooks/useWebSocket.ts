@@ -18,39 +18,29 @@ export function useChatSocket(
     if (!workspaceSlug || !channelId || !accessToken) return
     ws.current?.close()
 
-    console.log('WS TOKEN:', accessToken)
-
     const socket = new WebSocket(
       `${WS_URL}/ws/chat/${workspaceSlug}/${channelId}/?token=${accessToken}`
-)
+    )
 
     socket.onopen = () => console.log(`[WS] Connected to channel ${channelId}`)
 
     socket.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)
-
         switch (data.type) {
           case 'message':
             addMessage(channelId, data.message)
             break
-
           case 'message_edited':
             updateMessage(channelId, data.message)
             break
-
           case 'message_deleted':
             deleteMessage(channelId, data.message_id)
             break
-
           case 'typing':
             setTyping(
               channelId,
-              {
-                user_id: data.user_id,
-                username: data.username,
-                display_name: data.display_name
-              },
+              { user_id: data.user_id, username: data.username, display_name: data.display_name },
               data.is_typing
             )
             break
@@ -59,9 +49,9 @@ export function useChatSocket(
     }
 
     socket.onclose = (e) => {
-        if (e.code !== 1000) {
-          reconnectTimer.current = setTimeout(connect, 3000)
-        }
+      if (e.code !== 1000) {
+        reconnectTimer.current = setTimeout(connect, 3000)
+      }
     }
 
     ws.current = socket
@@ -69,7 +59,6 @@ export function useChatSocket(
 
   useEffect(() => {
     connect()
-
     return () => {
       clearTimeout(reconnectTimer.current)
       ws.current?.close(1000, 'unmount')
@@ -78,13 +67,7 @@ export function useChatSocket(
 
   const sendMessage = useCallback((content: string, parentId?: string) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
-      ws.current.send(
-        JSON.stringify({
-          type: 'message',
-          content,
-          parent_id: parentId
-        })
-      )
+      ws.current.send(JSON.stringify({ type: 'message', content, parent_id: parentId }))
     }
   }, [])
 
@@ -98,33 +81,90 @@ export function useChatSocket(
       ws.current.send(JSON.stringify({ type: 'typing_stop' }))
   }, [])
 
-  return {
-    sendMessage,
-    sendTypingStart,
-    sendTypingStop
-  }
+  return { sendMessage, sendTypingStart, sendTypingStop }
 }
 
 export function usePresenceSocket() {
   const ws = useRef<WebSocket | null>(null)
+  const reconnectTimer = useRef<any>(null)
   const { accessToken } = useAuthStore()
   const { setPresence, setPresenceSnapshot } = useAppStore()
 
   useEffect(() => {
     if (!accessToken) return
 
-    return
+    const connect = () => {
+      const socket = new WebSocket(`${WS_URL}/ws/presence/?token=${accessToken}`)
+
+      socket.onopen = () => console.log('[WS] Presence connected')
+
+      socket.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data)
+          if (data.type === 'presence_snapshot') {
+            setPresenceSnapshot(data.data)
+          } else if (data.type === 'presence_update') {
+            setPresence(data.user_id, data.status)
+          }
+        } catch {}
+      }
+
+      socket.onclose = (e) => {
+        if (e.code !== 1000) {
+          reconnectTimer.current = setTimeout(connect, 3000)
+        }
+      }
+
+      ws.current = socket
+    }
+
+    connect()
+
+    return () => {
+      clearTimeout(reconnectTimer.current)
+      ws.current?.close(1000, 'unmount')
+    }
   }, [accessToken])
 }
 
 export function useNotificationSocket(onNotification?: (data: any) => void) {
   const ws = useRef<WebSocket | null>(null)
+  const reconnectTimer = useRef<any>(null)
   const { accessToken } = useAuthStore()
   const { setUnreadNotifications } = useAppStore()
 
   useEffect(() => {
     if (!accessToken) return
 
-    return
+    const connect = () => {
+      const socket = new WebSocket(`${WS_URL}/ws/notifications/?token=${accessToken}`)
+
+      socket.onopen = () => console.log('[WS] Notifications connected')
+
+      socket.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data)
+          if (data.type === 'notification') {
+            setUnreadNotifications((data.unread_count) || 0)
+            onNotification?.(data)
+          }
+        } catch {}
+      }
+
+      socket.onclose = (e) => {
+        if (e.code !== 1000) {
+          reconnectTimer.current = setTimeout(connect, 3000)
+        }
+      }
+
+      ws.current = socket
+    }
+
+    connect()
+
+    return () => {
+      clearTimeout(reconnectTimer.current)
+      ws.current?.close(1000, 'unmount')
+    }
   }, [accessToken])
 }
