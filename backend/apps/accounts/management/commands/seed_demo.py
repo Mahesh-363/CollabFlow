@@ -30,18 +30,19 @@ class Command(BaseCommand):
                 user.save()
                 self.stdout.write(f'  Created user: {user.email}')
             else:
-                # Ensure password is correct even if user already exists
                 user.set_password(pw)
                 user.is_verified = True
                 user.save()
             created_users.append(user)
+
+        mahesh, alice, bob, sara, dev = created_users
 
         workspace, created = Workspace.objects.get_or_create(
             slug='collabflow-demo',
             defaults={
                 'name': 'CollabFlow Demo',
                 'description': 'Demo workspace for CollabFlow.',
-                'owner': created_users[0],
+                'owner': mahesh,
                 'icon_color': '#6366f1'
             }
         )
@@ -61,7 +62,7 @@ class Command(BaseCommand):
             {'name': 'engineering', 'description': 'Engineering discussions'},
             {'name': 'design', 'description': 'Design discussions'},
             {'name': 'random', 'description': 'Random stuff'},
-            {'name': 'announcements', 'description': 'Announcements'},
+            {'name': 'announcements', 'description': 'Company announcements'},
         ]
 
         created_channels = []
@@ -73,30 +74,71 @@ class Command(BaseCommand):
                     'description': cd['description'],
                     'is_default': cd.get('is_default', False),
                     'channel_type': 'public',
-                    'created_by': created_users[0]
+                    'created_by': mahesh
                 }
             )
             if created:
                 self.stdout.write(f'  Created channel: #{channel.name}')
             created_channels.append(channel)
 
+        general, engineering, design, random_ch, announcements = created_channels
+
         for channel in created_channels:
             for user in created_users:
                 ChannelMember.objects.get_or_create(channel=channel, user=user)
 
         seed_messages = [
-            (created_channels[0], created_users[0], "Welcome to CollabFlow! Real-time collaboration platform built with Django + Next.js."),
-            (created_channels[0], created_users[1], "This looks amazing! The real-time messaging works perfectly."),
-            (created_channels[0], created_users[2], "Love the clean UI. Did you check the engineering channel?"),
-            (created_channels[0], created_users[3], "The WebSocket integration is super smooth. Great work!"),
-            (created_channels[1], created_users[0], "Backend: Django 5.2, DRF, Django Channels, PostgreSQL, Redis, Celery"),
-            (created_channels[1], created_users[1], "Frontend: Next.js, Tailwind CSS, Zustand, React Query"),
-            (created_channels[1], created_users[2], "The WebSocket consumers are well-structured."),
+            # general
+            (general, mahesh,  "Hey team! CollabFlow is live. Built with Django 5.2, Django Channels, Redis, and Next.js. Real-time all the way."),
+            (general, alice,   "This is so clean! WebSocket connection is instant. Love how presence indicators update live."),
+            (general, bob,     "Tested it — messages are coming through in under 100ms. Solid work."),
+            (general, sara,    "The typing indicators are a nice touch. Really makes it feel like Slack."),
+            (general, dev,     "Deployed on Render + Vercel. Zero downtime. Impressed."),
+            (general, alice,   "Just created a new channel for design feedback. Check out #design when you get a chance."),
+            (general, mahesh,  "Also added JWT refresh token blacklisting on logout — security is tight."),
+            (general, bob,     "Nice. What's the plan for file uploads?"),
+            (general, mahesh,  "File upload endpoint is already built in the backend. Just need to wire up the UI."),
+            (general, sara,    "I can take a look at the UI side this week."),
+
+            # engineering
+            (engineering, mahesh, "Architecture: Django 5.2 backend with 7 apps — accounts, workspaces, channels, messages, notifications, presence, files."),
+            (engineering, mahesh, "WebSocket consumers: ChatConsumer for messaging, PresenceConsumer for online status, NotificationConsumer for alerts."),
+            (engineering, alice,  "The channel layer uses Redis. What is the message retention strategy?"),
+            (engineering, mahesh, "Messages persist to PostgreSQL. Redis is only for pub/sub. No message loss on reconnect."),
+            (engineering, bob,    "Celery is set up for async tasks. Good call keeping that separate from the request cycle."),
+            (engineering, dev,    "JWT setup looks solid. Access token + refresh token with blacklist on logout. How long are access tokens?"),
+            (engineering, mahesh, "15 minutes for access tokens, 7 days for refresh. Configurable via env vars."),
+            (engineering, alice,  "Frontend uses Zustand for global state and React Query for server state. Clean separation."),
+            (engineering, sara,   "The WebSocket reconnect logic with 3s backoff is a nice touch. Handles network drops gracefully."),
+            (engineering, bob,    "We should add pagination to the message list. Infinite scroll would be clean."),
+            (engineering, mahesh, "On the roadmap. Cursor-based pagination is already on the backend, just need to wire the frontend."),
+
+            # design
+            (design, alice,  "Working on the component library. Dark theme variables are in globals.css — easy to customize."),
+            (design, sara,   "The sidebar layout feels right. Channel list and workspace switcher is very clean."),
+            (design, alice,  "Thinking about avatar upload. Right now initials and color looks clean but custom avatars would be a nice touch."),
+            (design, bob,    "Keep the initials fallback for when avatars fail to load. Looks professional."),
+            (design, sara,   "The typing animation with the three dots is smooth. Small detail but it matters."),
+
+            # random
+            (random_ch, bob,    "Anyone else notice the app feels snappier than Slack? Probably because we are not running Electron."),
+            (random_ch, dev,    "Web app all the way. No 500MB download required."),
+            (random_ch, sara,   "Hot take: the dark theme is better than Slack."),
+            (random_ch, alice,  "Agreed. The indigo accent is much nicer."),
+            (random_ch, mahesh, "Ship it."),
+
+            # announcements
+            (announcements, mahesh, "CollabFlow v1.0 is live. Real-time messaging, presence tracking, JWT auth, multi-workspace support."),
+            (announcements, mahesh, "Demo credentials: mahesh@collabflow.dev / demo1234. Open two tabs to see real-time messaging in action."),
         ]
 
+        created_count = 0
         for channel, sender, content in seed_messages:
             if not Message.objects.filter(channel=channel, sender=sender, content=content).exists():
                 Message.objects.create(channel=channel, sender=sender, content=content)
+                created_count += 1
+
+        self.stdout.write(f'  Created {created_count} messages')
 
         if not User.objects.filter(is_superuser=True).exists():
             User.objects.create_superuser(
