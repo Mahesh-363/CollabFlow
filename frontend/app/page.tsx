@@ -10,7 +10,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/collabflow-demo')
+      router.replace('/app')
     } else {
       router.replace('/login')
     }
