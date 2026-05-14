@@ -1,4 +1,4 @@
-# backend/config/asgi.py
+﻿# backend/config/asgi.py
 import os
 import django
 
@@ -18,10 +18,10 @@ from config.middleware import JWTAuthMiddleware
 django_asgi_app = get_asgi_application()
 
 websocket_urlpatterns = [
-    # With channel_id — used by chat page
+    # With channel_id â€” used by chat page
     path('ws/chat/<str:workspace_slug>/<str:channel_id>/', ChatConsumer.as_asgi()),
-    # Workspace-only — presence/sidebar level connection
-    path('ws/presence/<str:workspace_slug>/', PresenceConsumer.as_asgi()),
+    # Workspace-only â€” presence/sidebar level connection
+    path('ws/presence/',, PresenceConsumer.as_asgi()),
     path('ws/notifications/', NotificationConsumer.as_asgi()),
 ]
 
