@@ -1,10 +1,12 @@
 # backend/apps/workspaces/views.py
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.text import slugify
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+import uuid
 
 from apps.core.mixins import StandardResponseMixin
 from .models import Workspace, WorkspaceMember
@@ -22,13 +24,24 @@ class WorkspaceListCreateView(StandardResponseMixin, generics.GenericAPIView):
         return self.success(data=data)
 
     def post(self, request):
+        from apps.channels.models import Channel, ChannelMember
         name = request.data.get('name', '').strip()
         if not name:
             return self.error(message="Name is required")
         description = request.data.get('description', '')
         icon_color = request.data.get('icon_color', '#4a154b')
+
+        # Generate unique slug from name
+        base_slug = slugify(name) or 'workspace'
+        slug = base_slug
+        counter = 1
+        while Workspace.objects.filter(slug=slug).exists():
+            slug = f'{base_slug}-{counter}'
+            counter += 1
+
         workspace = Workspace.objects.create(
             name=name,
+            slug=slug,
             description=description,
             icon_color=icon_color,
             owner=request.user,
@@ -38,6 +51,17 @@ class WorkspaceListCreateView(StandardResponseMixin, generics.GenericAPIView):
             workspace=workspace,
             role='owner'
         )
+        # Auto-create #general channel
+        general = Channel.objects.create(
+            workspace=workspace,
+            name='general',
+            slug='general',
+            description='General discussion',
+            channel_type='public',
+            is_default=True,
+            created_by=request.user,
+        )
+        ChannelMember.objects.create(user=request.user, channel=general)
         return self.success(data=_workspace_data(workspace, request.user), status_code=status.HTTP_201_CREATED)
 
 
@@ -97,7 +121,7 @@ def leave_workspace(request, slug):
     return Response({"success": True, "data": None, "message": "Left workspace"})
 
 
-# ─── Helpers ──────────────────────────────────────────────────────────────────
+# --- Helpers ------------------------------------------------------------------
 
 def _workspace_data(w, user=None):
     member_count = WorkspaceMember.objects.filter(workspace=w).count()
