@@ -1,0 +1,23 @@
+{
+  "name": "collabflow",
+  "version": "1.0.0",
+  "description": "> A production-grade real-time collaboration platform built with Django + Next.js",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mahesh-363/CollabFlow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Mahesh-363/CollabFlow/issues"
+  },
+  "homepage": "https://github.com/Mahesh-363/CollabFlow#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.7.0"
+  }
+}
