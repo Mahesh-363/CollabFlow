@@ -221,12 +221,12 @@ NEXT_PUBLIC_WS_URL=ws://localhost:8000
 
 ## 👤 Author
 
-**Mahesh V** — Python Full Stack Developer  
+**Mahesh V** — Python Backend Developer  
 📍 Visakhapatnam, India  
-🔗 [GitHub](https://github.com/Mahesh-363) · [Portfolio](https://github.com/Mahesh-363)
+🔗 [GitHub](https://github.com/Mahesh-363) · [Portfolio](https://mahesh-portfolio-beryl.vercel.app/)
 
 ---
 
 <div align="center">
-  <sub>Built with ⚡ using Django + Next.js</sub>
+  <sub>Built with ⚡ using Python, Django + Next.js</sub>
 </div>
