@@ -1,299 +1,232 @@
-# CollabFlow ⚡
+<div align="center">
 
-> A production-grade real-time collaboration platform built with Django + Next.js
+# ⚡ CollabFlow
 
-![CollabFlow](https://img.shields.io/badge/CollabFlow-v1.0-6366f1?style=for-the-badge)
-![Django](https://img.shields.io/badge/Django-4.2-092E20?style=for-the-badge&logo=django)
-![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs)
-![WebSockets](https://img.shields.io/badge/WebSockets-Real--time-10b981?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)
+### Production-grade real-time collaboration platform — built like Slack, engineered from scratch.
 
----
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-collabflow--lovat.vercel.app-6366f1?style=for-the-badge&logo=vercel)](https://collabflow-lovat.vercel.app)
+[![Backend](https://img.shields.io/badge/API-Render-46e3b7?style=for-the-badge&logo=render)](https://collabflow-backend-ghrc.onrender.com)
+[![GitHub](https://img.shields.io/badge/GitHub-Mahesh--363%2FCollabFlow-181717?style=for-the-badge&logo=github)](https://github.com/Mahesh-363/CollabFlow)
 
-## What is CollabFlow?
+![CollabFlow Demo](https://img.shields.io/badge/Status-Live%20%F0%9F%9F%A2-success?style=flat-square)
+![Django](https://img.shields.io/badge/Django-5.2-092E20?style=flat-square&logo=django)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)
+![WebSockets](https://img.shields.io/badge/WebSockets-Django%20Channels-red?style=flat-square)
+![Redis](https://img.shields.io/badge/Redis-Channel%20Layer-DC382D?style=flat-square&logo=redis)
 
-CollabFlow is a full-stack, production-ready team collaboration platform inspired by **Slack** and **Microsoft Teams**. Built as a flagship portfolio project to demonstrate end-to-end engineering across backend, frontend, real-time infrastructure, and DevOps.
-
-**Live Features:**
-- 💬 Real-time messaging with WebSockets
-- 👥 Workspaces and channels (public & private)
-- ⌨️ Typing indicators
-- 👁️ User presence (online / away / DND / offline)
-- 🔔 Real-time push notifications
-- 😊 Emoji reactions on messages
-- 🧵 Threaded replies
-- 📎 File uploads (images, PDFs, docs)
-- 🔍 Full-text message search
-- 🔐 JWT authentication with auto-refresh
-- 🛡️ Role-based access (Owner / Admin / Member / Guest)
-- 📱 Responsive dark-themed UI
+</div>
 
 ---
 
-## Tech Stack
+## 🚀 Live Demo
 
-### Backend
-| Technology | Purpose |
-|---|---|
-| Django 4.2 | Web framework |
-| Django REST Framework | REST API |
-| Django Channels | WebSocket support |
-| Daphne | ASGI server |
-| PostgreSQL | Primary database |
-| SQLite | Local development |
-| Redis | Channel layer + caching |
-| Celery | Async task queue |
-| JWT (SimpleJWT) | Authentication |
+> **URL:** https://collabflow-lovat.vercel.app
 
-### Frontend
-| Technology | Purpose |
-|---|---|
-| Next.js 16 | React framework |
-| Tailwind CSS | Styling |
-| Zustand | Global state management |
-| React Query | Server state & caching |
-| Axios | HTTP client with auto-refresh |
-| date-fns | Date formatting |
+| Credential | Email | Password |
+|---|---|---|
+| Demo User | `mahesh@collabflow.dev` | `demo1234` |
+| Admin | `admin@collabflow.dev` | `admin1234` |
 
-### Infrastructure
-| Technology | Purpose |
-|---|---|
-| Docker | Containerization |
-| Docker Compose | Multi-service orchestration |
-| Nginx | Reverse proxy + WebSocket routing |
-| AWS | Deployment target (EC2 / ECS) |
+Open two browser tabs with different accounts to see real-time messaging in action.
 
 ---
 
-## Architecture
+## ✨ Features
+
+- 🔐 **JWT Authentication** — access + refresh tokens, refresh token blacklisting on logout
+- 🏢 **Workspaces** — create/join multiple workspaces with role-based access (Owner / Admin / Member)
+- 💬 **Real-time Messaging** — WebSocket-powered chat via Django Channels + Redis channel layer
+- 📡 **Presence System** — live online/offline status tracking across connected users
+- 🔔 **Notifications** — real-time notification delivery via dedicated WebSocket consumer
+- 📁 **Channels** — public/private channels with membership management
+- ⚡ **Async Tasks** — Celery + Redis for background job processing
+- 🛡️ **Production-ready** — PostgreSQL, Daphne ASGI server, WhiteNoise static files, CORS
+
+---
+
+## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                        Nginx                            │
-│           (Reverse Proxy + WebSocket Routing)           │
-└────────────┬──────────────────────────┬─────────────────┘
-             │                          │
-    ┌────────▼────────┐       ┌─────────▼────────┐
-    │   Next.js 16    │       │   Django + Daphne │
-    │   (Frontend)    │       │   (Backend ASGI)  │
-    └─────────────────┘       └────────┬──────────┘
-                                       │
-                          ┌────────────┼────────────┐
-                          │            │            │
-                   ┌──────▼──┐  ┌─────▼──┐  ┌─────▼──┐
-                   │PostgreSQL│  │ Redis  │  │Celery  │
-                   └─────────┘  └────────┘  └────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT (Vercel)                         │
+│   Next.js 16 · TypeScript · Tailwind · Zustand · React Query   │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │  HTTPS / WSS
+┌──────────────────────────▼──────────────────────────────────────┐
+│                      BACKEND (Render)                           │
+│                    Daphne ASGI Server                           │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              Django 5.2 Application                     │   │
+│  │   accounts · workspaces · channels · messages           │   │
+│  │   notifications · presence · files                      │   │
+│  └──────────────────┬──────────────┬────────────────────── ┘   │
+│                     │              │                            │
+│          ┌──────────▼───┐  ┌───────▼──────────┐               │
+│          │  PostgreSQL  │  │  Redis           │               │
+│          │  (Render DB) │  │  Channel Layer   │               │
+│          └──────────────┘  │  Celery Broker   │               │
+│                            └──────────────────┘               │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### WebSocket Consumers
-- `/ws/chat/{channel_id}/` — Real-time messaging, typing, reactions
-- `/ws/presence/` — Online/offline status broadcast
-- `/ws/notifications/` — Per-user notification push
+
+| Consumer | Path | Purpose |
+|---|---|---|
+| `ChatConsumer` | `ws/chat/<channel_id>/` | Real-time messaging |
+| `PresenceConsumer` | `ws/presence/` | Online/offline status |
+| `NotificationConsumer` | `ws/notifications/` | Live notifications |
 
 ---
 
-## Project Structure
+## 🛠️ Tech Stack
+
+### Backend
+| Technology | Version | Purpose |
+|---|---|---|
+| Django | 5.2 | Web framework |
+| Django REST Framework | 3.15 | REST API |
+| Django Channels | 4.1 | WebSocket support |
+| Daphne | 4.1 | ASGI server |
+| Celery | 5.4 | Async task queue |
+| Redis | — | Channel layer + Celery broker |
+| PostgreSQL | — | Production database |
+| SimpleJWT | 5.3 | JWT authentication |
+| psycopg2 | 2.9 | PostgreSQL adapter |
+
+### Frontend
+| Technology | Version | Purpose |
+|---|---|---|
+| Next.js | 16 | React framework (App Router) |
+| TypeScript | — | Type safety |
+| Tailwind CSS | — | Styling |
+| Zustand | — | Global state management |
+| React Query | — | Server state + caching |
+| Axios | — | HTTP client |
+
+---
+
+## 📁 Project Structure
 
 ```
 collabflow/
 ├── backend/
 │   ├── apps/
-│   │   ├── accounts/        # Custom User model, JWT auth
+│   │   ├── accounts/        # User auth, JWT, profiles
 │   │   ├── workspaces/      # Workspace + member management
 │   │   ├── channels/        # Channel CRUD + membership
-│   │   ├── messages/        # Messages, reactions, threads, WS consumer
-│   │   ├── notifications/   # Notification model + WS consumer
-│   │   ├── files/           # File upload handling
-│   │   └── presence/        # User presence + WS consumer
+│   │   ├── messages/        # Message storage + retrieval
+│   │   ├── notifications/   # Notification system
+│   │   ├── presence/        # Online status tracking
+│   │   └── files/           # File attachment handling
 │   ├── config/
-│   │   ├── settings/        # base / development / production
+│   │   ├── settings/
+│   │   │   ├── base.py
+│   │   │   ├── development.py
+│   │   │   └── production.py
 │   │   ├── asgi.py          # ASGI + WebSocket routing
-│   │   ├── urls.py          # API routes
-│   │   └── routing.py       # WebSocket routes
-│   ├── manage.py
-│   ├── seed.py              # Demo data seeder
+│   │   └── urls.py
+│   ├── build.sh             # Render build script
 │   └── requirements.txt
-│
-├── frontend/
-│   ├── app/
-│   │   ├── login/           # Login page
-│   │   ├── register/        # Register page
-│   │   └── app/
-│   │       ├── page.tsx             # Workspace selector
-│   │       └── [workspaceSlug]/
-│   │           ├── page.tsx         # Workspace home
-│   │           ├── [channelId]/     # Real-time chat
-│   │           ├── notifications/
-│   │           ├── members/
-│   │           ├── search/
-│   │           └── settings/
-│   ├── components/
-│   │   ├── Sidebar.tsx
-│   │   ├── MessageItem.tsx
-│   │   └── MessageInput.tsx
-│   ├── hooks/
-│   │   └── useWebSocket.ts  # Chat + Presence + Notification hooks
-│   ├── lib/
-│   │   └── api.ts           # Axios client + JWT interceptors
-│   └── store/
-│       ├── authStore.ts     # Auth state (Zustand)
-│       └── appStore.ts      # App state (messages, presence, typing)
-│
-├── nginx/
-│   └── nginx.conf
-├── docker-compose.yml
-└── README.md
+└── frontend/
+    ├── app/
+    │   ├── login/           # Auth pages
+    │   ├── register/
+    │   └── app/
+    │       └── [workspaceSlug]/
+    │           ├── [channelId]/   # Chat interface
+    │           ├── members/
+    │           ├── notifications/
+    │           └── settings/
+    ├── components/          # Reusable UI components
+    ├── store/               # Zustand stores (auth, app)
+    ├── lib/                 # API client, utilities
+    └── hooks/               # Custom hooks (WebSocket, etc.)
 ```
 
 ---
 
-## Getting Started
+## 🚦 Local Development
 
 ### Prerequisites
-- Python 3.10+
+- Python 3.12+
 - Node.js 18+
-- Git
+- Redis (running locally)
+- PostgreSQL (or use SQLite for dev)
 
-### Local Development (No Docker)
+### Backend Setup
 
-**1. Clone the repo**
-```bash
-git clone https://github.com/yourusername/collabflow.git
-cd collabflow
-```
-
-**2. Backend setup**
 ```bash
 cd backend
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+
 pip install -r requirements.txt
+
+# Create .env file
+cp .env.example .env  # set your values
+
 python manage.py migrate
-python seed.py
-python manage.py runserver 8000
+python manage.py seed_demo
+python manage.py runserver
 ```
 
-**3. Frontend setup** (new terminal)
+### Frontend Setup
+
 ```bash
 cd frontend
 npm install
+
+# Create .env.local
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_WS_URL=ws://localhost:8000" >> .env.local
+
 npm run dev
 ```
 
-**4. Open browser**
-```
-http://localhost:3000
-```
+### Environment Variables
 
-### Docker (Full Stack)
-
-```bash
-docker-compose up --build
-docker exec collabflow_backend python seed.py
-```
-
-Open: `http://localhost`
-
----
-
-## Demo Credentials
-
-| Email | Password | Role |
-|---|---|---|
-| mahesh@collabflow.dev | demo1234 | Owner |
-| alice@collabflow.dev | demo1234 | Admin |
-| bob@collabflow.dev | demo1234 | Member |
-| admin@collabflow.dev | admin1234 | Django Admin |
-
-Django Admin: `http://localhost:8000/admin/`
-
----
-
-## API Overview
-
-```
-POST   /api/v1/auth/register/
-POST   /api/v1/auth/login/
-POST   /api/v1/auth/logout/
-GET    /api/v1/auth/profile/
-
-GET    /api/v1/workspaces/
-POST   /api/v1/workspaces/
-GET    /api/v1/workspaces/{slug}/
-GET    /api/v1/workspaces/{slug}/members/
-
-GET    /api/v1/channels/workspace/{slug}/
-POST   /api/v1/channels/workspace/{slug}/
-GET    /api/v1/channels/workspace/{slug}/mine/
-POST   /api/v1/channels/{id}/join/
-
-GET    /api/v1/messages/channel/{id}/
-POST   /api/v1/messages/channel/{id}/send/
-PUT    /api/v1/messages/{id}/edit/
-DELETE /api/v1/messages/{id}/delete/
-POST   /api/v1/messages/{id}/reactions/
-GET    /api/v1/messages/{id}/thread/
-GET    /api/v1/messages/search/
-
-GET    /api/v1/notifications/
-POST   /api/v1/notifications/mark-all-read/
-```
-
----
-
-## Environment Variables
-
-**Backend** (`.env`)
+**Backend `.env`**
 ```env
 SECRET_KEY=your-secret-key
 DEBUG=True
+DATABASE_URL=sqlite:///db.sqlite3
+REDIS_URL=redis://localhost:6379
 ALLOWED_HOSTS=localhost,127.0.0.1
-USE_SQLITE=True
-REDIS_HOST=localhost
-REDIS_PORT=6379
 CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-**Frontend** (`.env.local`)
+**Frontend `.env.local`**
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_WS_URL=ws://localhost:8000
 ```
 
 ---
 
-## Deployment (AWS)
+## 🌐 Deployment
 
-```bash
-# 1. Set production values in .env.docker
-# 2. Build and deploy
-docker-compose -f docker-compose.yml up -d --build
-
-# 3. Seed data
-docker exec collabflow_backend python seed.py
-```
-
-Supports deployment on:
-- AWS EC2 (Docker Compose)
-- AWS ECS (container service)
-- Any VPS with Docker installed
+| Service | Platform | URL |
+|---|---|---|
+| Frontend | Vercel | https://collabflow-lovat.vercel.app |
+| Backend API | Render | https://collabflow-backend-ghrc.onrender.com |
+| Database | Render PostgreSQL | Internal |
+| Redis | Render Redis | Internal |
 
 ---
 
-## Key Engineering Highlights
+## 👤 Author
 
-- **Async WebSocket consumers** — Separate consumers for chat, presence, and notifications using Django Channels + Redis channel layer
-- **JWT auto-refresh** — Axios interceptor silently refreshes expired tokens without logging the user out
-- **Cursor-based pagination** — Messages load efficiently using DRF cursor pagination
-- **Soft deletes** — Messages are soft-deleted, preserving thread integrity
-- **Role-based permissions** — Owner → Admin → Member → Guest hierarchy enforced at API level
-- **Hydration-safe auth** — Zustand persist with hydration guards prevents 401 errors on page load
-- **Production-ready Docker setup** — Multi-service compose with health checks, Nginx WebSocket routing, and volume persistence
+**Mahesh V** — Python Full Stack Developer  
+📍 Visakhapatnam, India  
+🔗 [GitHub](https://github.com/Mahesh-363) · [Portfolio](https://github.com/Mahesh-363)
 
 ---
 
-## License
-
-MIT — free to use for portfolio, learning, or production.
-
----
-
-Built with ❤️ by [Mahesh V](https://github.com/yourusername)
+<div align="center">
+  <sub>Built with ⚡ using Django + Next.js</sub>
+</div>
