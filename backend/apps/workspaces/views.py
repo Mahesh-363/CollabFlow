@@ -72,6 +72,13 @@ class WorkspaceDetailView(StandardResponseMixin, generics.GenericAPIView):
         workspace = get_object_or_404(Workspace, slug=slug)
         return self.success(data=_workspace_data(workspace, request.user))
 
+    def delete(self, request, slug):
+        workspace = get_object_or_404(Workspace, slug=slug)
+        if workspace.owner != request.user:
+            return self.error(message="Only the owner can delete this workspace", status_code=status.HTTP_403_FORBIDDEN)
+        workspace.delete()
+        return self.success(data=None, status_code=status.HTTP_204_NO_CONTENT)
+
     def patch(self, request, slug):
         workspace = get_object_or_404(Workspace, slug=slug)
         member = WorkspaceMember.objects.filter(

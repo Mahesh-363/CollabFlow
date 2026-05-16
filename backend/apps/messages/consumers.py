@@ -55,7 +55,60 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
         message = await self._save_message(content, parent_id)
         if message:
-            await self.channel_layer.group_send(self.room_group_name, {'type':'chat_message','message':await self._serialize_message(message)})
+            serialized = await self._serialize_message(message)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'chat_message', 'message': serialized}
+            )
+            # Send notifications for @mentions
+            await self._handle_mentions(content, message)
+
+    async def _handle_mentions(self, content, message):
+        import re
+        mentions = re.findall(r'@(\w+)', content)
+        if not mentions:
+            return
+        for username in set(mentions):
+            await self._create_mention_notification(username, message)
+
+    @database_sync_to_async
+    def _create_mention_notification(self, username, message):
+        try:
+            from django.contrib.auth import get_user_model
+            from apps.notifications.models import Notification
+            from asgiref.sync import async_to_sync
+            from channels.layers import get_channel_layer
+            User = get_user_model()
+            recipient = User.objects.filter(username=username).first()
+            if not recipient or recipient == self.user:
+                return
+            notif = Notification.objects.create(
+                recipient=recipient,
+                sender=self.user,
+                message=message,
+                workspace=message.channel.workspace,
+                notification_type=Notification.TYPE_MENTION,
+                title=f'{self.user.display_name or self.user.username} mentioned you',
+                body=message.content[:200],
+            )
+            # Push to notification WebSocket
+            channel_layer = get_channel_layer()
+            group_name = f'notifications_{recipient.id}'
+            unread_count = Notification.objects.filter(recipient=recipient, is_read=False).count()
+            async_to_sync(channel_layer.group_send)(group_name, {
+                'type': 'notification',
+                'data': {
+                    'id': str(notif.id),
+                    'notification_type': notif.notification_type,
+                    'title': notif.title,
+                    'body': notif.body,
+                    'is_read': False,
+                    'created_at': notif.created_at.isoformat(),
+                    'unread_count': unread_count,
+                }
+            })
+        except Exception as e:
+            logger.error(f'Error creating mention notification: {e}')
 
     async def _handle_typing_start(self, data):
         await self.channel_layer.group_send(self.room_group_name, {'type':'typing_indicator','user_id':str(self.user.id),'username':self.user.username,'display_name':self.user.name,'is_typing':True})
@@ -91,11 +144,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.channel_layer.group_send(self.room_group_name, {'type':'message_edited','message':await self._serialize_message(message)})
 
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-                'type': 'message',
-                'message': event['message']
-        }, default=str))
-        
+        await self.send(text_data=json.dumps({'type':'message','message':event['message']}, default=str))
+
     async def typing_indicator(self, event):
         if str(self.user.id) != event['user_id']:
             await self.send(text_data=json.dumps({'type':'typing','user_id':event['user_id'],'username':event['username'],'display_name':event['display_name'],'is_typing':event['is_typing']}))
