@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -56,23 +56,23 @@ export function Sidebar({ workspaceSlug, workspaceName, workspaceColor }: Sideba
             <div style={{ width: 5, height: 5, borderRadius: '50%', background: statusColor[myStatus] }} /> {myStatus}
           </div>
         </div>
-        <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>▼</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>â–¼</span>
       </div>
 
       {/* Nav */}
       <div style={{ padding: '6px 8px', borderBottom: '1px solid var(--border)' }}>
         {[
-          { href: `/app/${workspaceSlug}/search`, icon: '🔍', label: 'Search' },
-          { href: `/app/${workspaceSlug}/notifications`, icon: '🔔', label: 'Notifications', badge: unreadNotifications },
-          { href: `/app/${workspaceSlug}/members`, icon: '👥', label: 'Members' },
+          { href: `/app/${workspaceSlug}/search`, icon: 'ðŸ”', label: 'Search' },
+          { href: `/app/${workspaceSlug}/notifications`, icon: 'ðŸ””', label: 'Notifications', badge: unreadNotifications > 0 ? unreadNotifications : undefined },
+          { href: `/app/${workspaceSlug}/members`, icon: 'ðŸ‘¥', label: 'Members' },
         ].map(item => (
           <Link key={item.href} href={item.href} className={`sidebar-item ${pathname === item.href ? 'active' : ''}`} style={{ marginBottom: 2 }}>
             <span style={{ fontSize: 13 }}>{item.icon}</span>
             {item.label}
             {item.badge && item.badge > 0 && (
-              <span style={{ marginLeft: 'auto', background: 'var(--brand)', color: 'white', borderRadius: 99, fontSize: 10, padding: '1px 5px', fontWeight: 700 }}>
-                {item.badge > 99 ? '99+' : item.badge}
-              </span>
+                <span style={{ marginLeft: 'auto', background: 'var(--brand)', color: 'white', borderRadius: 99, fontSize: 10, padding: '1px 5px', fontWeight: 700 }}>
+                    {item.badge > 99 ? '99+' : item.badge}
+                </span>
             )}
           </Link>
         ))}
@@ -89,7 +89,7 @@ export function Sidebar({ workspaceSlug, workspaceName, workspaceColor }: Sideba
           return (
             <Link key={ch.id} href={`/app/${workspaceSlug}/${ch.id}`} className={`sidebar-item ${isActive ? 'active' : ''}`} style={{ justifyContent: 'space-between', fontSize: 13 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0 }}>
-                <span style={{ fontSize: 12, color: isActive ? 'var(--brand-bright)' : 'var(--text-muted)' }}>{ch.channel_type === 'private' ? '🔒' : '#'}</span>
+                <span style={{ fontSize: 12, color: isActive ? 'var(--brand-bright)' : 'var(--text-muted)' }}>{ch.channel_type === 'private' ? 'ðŸ”’' : '#'}</span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</span>
               </span>
               {ch.unread_count > 0 && !isActive && (
@@ -115,8 +115,8 @@ export function Sidebar({ workspaceSlug, workspaceName, workspaceColor }: Sideba
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.display_name || user?.username}</div>
           <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>@{user?.username}</div>
         </div>
-        <Link href={`/app/${workspaceSlug}/settings`} style={{ color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none' }}>⚙️</Link>
-        <button onClick={async () => { await logout(); window.location.href = '/login' }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14 }}>🚪</button>
+        <Link href={`/app/${workspaceSlug}/settings`} style={{ color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none' }}>âš™ï¸</Link>
+        <button onClick={async () => { await logout(); window.location.href = '/login' }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 14 }}>ðŸšª</button>
       </div>
 
       {/* Create channel modal */}
@@ -138,7 +138,7 @@ export function Sidebar({ workspaceSlug, workspaceName, workspaceColor }: Sideba
                 {['public', 'private'].map(t => (
                   <button key={t} onClick={() => setNewCh({ ...newCh, channel_type: t })}
                     style={{ flex: 1, padding: '8px', borderRadius: 8, border: `1px solid ${newCh.channel_type === t ? 'var(--brand)' : 'var(--border)'}`, background: newCh.channel_type === t ? 'rgba(99,102,241,0.1)' : 'transparent', color: newCh.channel_type === t ? 'var(--brand-bright)' : 'var(--text-muted)', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
-                    {t === 'public' ? '# Public' : '🔒 Private'}
+                    {t === 'public' ? '# Public' : 'ðŸ”’ Private'}
                   </button>
                 ))}
               </div>
