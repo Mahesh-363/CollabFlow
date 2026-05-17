@@ -2,8 +2,37 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { useAppStore } from '@/store/appStore'
 import { useAuthStore } from '@/store/authStore'
+import axios from 'axios'
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+// Refresh access token if expired, return valid token
+async function getValidToken(): Promise<string | null> {
+  const store = useAuthStore.getState()
+  let token = store.accessToken || localStorage.getItem('access_token')
+  if (!token) return null
+
+  // Check if token is expired (JWT payload is base64 encoded)
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    const expiresAt = payload.exp * 1000
+    const isExpired = Date.now() >= expiresAt - 30000 // refresh 30s before expiry
+
+    if (isExpired) {
+      const refresh = store.refreshToken || localStorage.getItem('refresh_token')
+      if (!refresh) return null
+      const { data } = await axios.post(`${API_URL}/auth/token/refresh/`, { refresh })
+      token = data.access
+      localStorage.setItem('access_token', token!)
+      useAuthStore.setState({ accessToken: token })
+    }
+  } catch {
+    return token // if parsing fails just use existing token
+  }
+
+  return token
+}
 
 export function useChatSocket(
   workspaceSlug: string | null,
@@ -14,15 +43,18 @@ export function useChatSocket(
   const { accessToken } = useAuthStore()
   const { addMessage, updateMessage, deleteMessage, setTyping } = useAppStore()
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (!workspaceSlug || !channelId || !accessToken) return
     ws.current?.close()
 
+    const token = await getValidToken()
+    if (!token) return
+
     const socket = new WebSocket(
-      `${WS_URL}/ws/chat/${workspaceSlug}/${channelId}/?token=${accessToken}`
+      `${WS_URL}/ws/chat/${workspaceSlug}/${channelId}/?token=${token}`
     )
 
-    socket.onopen = () => console.log(`[WS] Connected to channel ${channelId}`)
+    socket.onopen = () => console.log(`[WS] Chat connected to channel ${channelId}`)
 
     socket.onmessage = (e) => {
       try {
@@ -93,8 +125,11 @@ export function usePresenceSocket() {
   useEffect(() => {
     if (!accessToken) return
 
-    const connect = () => {
-      const socket = new WebSocket(`${WS_URL}/ws/presence/?token=${accessToken}`)
+    const connect = async () => {
+      const token = await getValidToken()
+      if (!token) return
+
+      const socket = new WebSocket(`${WS_URL}/ws/presence/?token=${token}`)
 
       socket.onopen = () => console.log('[WS] Presence connected')
 
@@ -136,8 +171,11 @@ export function useNotificationSocket(onNotification?: (data: any) => void) {
   useEffect(() => {
     if (!accessToken) return
 
-    const connect = () => {
-      const socket = new WebSocket(`${WS_URL}/ws/notifications/?token=${accessToken}`)
+    const connect = async () => {
+      const token = await getValidToken()
+      if (!token) return
+
+      const socket = new WebSocket(`${WS_URL}/ws/notifications/?token=${token}`)
 
       socket.onopen = () => console.log('[WS] Notifications connected')
 
@@ -145,8 +183,10 @@ export function useNotificationSocket(onNotification?: (data: any) => void) {
         try {
           const data = JSON.parse(e.data)
           if (data.type === 'notification') {
-            setUnreadNotifications((data.unread_count) || 0)
+            setUnreadNotifications(data.data?.unread_count || 0)
             onNotification?.(data)
+          } else if (data.type === 'connected') {
+            setUnreadNotifications(data.unread_count || 0)
           }
         } catch {}
       }
